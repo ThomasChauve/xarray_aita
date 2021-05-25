@@ -1,0 +1,13 @@
+name: xarray_uvecs
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - xarray
+  - numpy
+  - matplotlib
+  - scikit-image
+  - pip
+  - pip:
+    - -e .
