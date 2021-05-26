@@ -1,8 +1,0 @@
-git+https://github.com/ThomasChauve/xarray_uvecs
-git+https://github.com/ThomasChauve/xarray_aita
-jupyter-book
-matplotlib
-numpy
-xarray
-scikit-image
-scikit-learn
