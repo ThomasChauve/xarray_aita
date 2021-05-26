@@ -17,7 +17,7 @@ DESCRIPTION = 'Tools to work on output from AITA'
 URL = 'https://github.com/ThomasChauve/xarray_aita'
 EMAIL = 'thomas.chauve@univ-grenoble-alpes.fr'
 AUTHOR = 'Thomas Chauve'
-REQUIRES_PYTHON = '>=3.9'
+REQUIRES_PYTHON = '>=3.7'
 VERSION = '0.1'
 
 # What packages are required for this module to be executed?
