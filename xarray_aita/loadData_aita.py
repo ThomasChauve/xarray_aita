@@ -30,6 +30,8 @@ def aita5col(adr_data,micro_adress=0):
             micro_field=micro_bmp[:,:,0]/mm
         elif len(micro_bmp.shape)==2:
             micro_field=micro_bmp[:,:]/mm
+    else:
+        micro_field=np.zeros([ny,nx])
     
 
     #-------------------- The data structure--------------------------
@@ -48,4 +50,4 @@ def aita5col(adr_data,micro_adress=0):
     },
     )
     
-    return ds,data.x,data.y
+    return ds
