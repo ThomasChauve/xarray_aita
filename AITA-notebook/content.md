@@ -1,5 +1,4 @@
-Content in Jupyter Book
-=======================
+Basic exemple of AITA data analysis
+===================================
 
-There are many ways to write content in Jupyter Book. This short section
-covers a few tips for how to do so.
+This section present you various jupyter notebook to start using xarray_aita for your analysis

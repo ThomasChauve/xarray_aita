@@ -1,7 +1,4 @@
-Welcome to your Jupyter Book
-============================
+Welcome to AITA notebook
+========================
 
-This is a small sample book to give you a feel for how book content is
-structured.
-
-Check out the content pages bundled with this sample book to get started.
+This webpage will give you an overview of data analysis that can be done using xarray_aita.
