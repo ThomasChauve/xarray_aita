@@ -12,7 +12,7 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'xarray_aita'
+NAME = 'xarrayaita'
 DESCRIPTION = 'Tools to work on output from AITA'
 URL = 'https://github.com/ThomasChauve/xarray_aita'
 EMAIL = 'thomas.chauve@univ-grenoble-alpes.fr'
