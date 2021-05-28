@@ -33,14 +33,8 @@ class aita(object):
         flip left right the data and rotate the orientation 
         '''
         self._obj.coords['x']=np.max(self._obj.coords['x'])-self._obj.coords['x']
-        self._obj.orientation[:,:,0]=np.mod(np.pi-self._obj.orientation[:,:,0],2*np.pi)
-        
-    def flipud(self):
-        '''
-        flip up down the data and rotate the orientation 
-        '''
-        self._obj.coords['y']=np.max(self._obj.coords['y'])-self._obj.coords['y']
         self._obj.orientation[:,:,0]=np.mod(2*np.pi-self._obj.orientation[:,:,0],2*np.pi)
+
         
     def rot180(self):
         '''

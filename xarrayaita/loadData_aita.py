@@ -33,7 +33,9 @@ def aita5col(adr_data,micro_adress=0):
     else:
         micro_field=np.zeros([ny,nx])
     
-
+    dx=np.linspace(0,nx-1,nx)*resolution
+    dy=np.linspace(0,ny-1,ny)*resolution
+    dy=np.max(dy)-dy
     #-------------------- The data structure--------------------------
     ds = xr.Dataset(
     #"dims": {'x':resolution,'y':resolution}
@@ -45,9 +47,14 @@ def aita5col(adr_data,micro_adress=0):
         
     },
     coords={
-        "x": np.linspace(0,nx-1,nx)*resolution,
-        "y": np.linspace(0,ny-1,ny)*resolution,
+        "x": dx,
+        "y": dy,
     },
     )
     
+    ds.attrs["date"]=a[3][5:-1]
+    ds.attrs["unit"]='millimeters'
+    ds.attrs["step_size"]=resolution
+    ds.attrs["path_dat"]=adr_data
     return ds
+
