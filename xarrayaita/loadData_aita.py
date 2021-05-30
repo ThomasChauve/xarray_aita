@@ -40,7 +40,7 @@ def aita5col(adr_data,micro_adress=0):
     ds = xr.Dataset(
     #"dims": {'x':resolution,'y':resolution}
     {   
-        "orientation": (["y", "x","v"],(np.dstack( (np.array(data.azi*np.pi/180).reshape([ny,nx]),np.array(data.col*np.pi/180).reshape([ny,nx])) ))),
+        "orientation": (["y", "x","uvecs"],(np.dstack( (np.array(data.azi*np.pi/180).reshape([ny,nx]),np.array(data.col*np.pi/180).reshape([ny,nx])) ))),
         "quality": (["y", "x"],np.array(data.qua).reshape([ny,nx])),
         "micro": (["y", "x"],micro_field),
         "grainId": (["y", "x"], morphology.label(micro_field, connectivity=1, background=1)),
