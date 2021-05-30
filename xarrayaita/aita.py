@@ -1,5 +1,10 @@
 import xarray as xr
+import xarrayuvecs.uvecs as xu
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+from skimage import morphology
+import ipywidgets as widgets
 
 @xr.register_dataset_accessor("aita")
 
@@ -45,7 +50,7 @@ class aita(object):
         self._obj.orientation[:,:,0]=np.mod(np.pi+self._obj.orientation[:,:,0],2*np.pi)
         
         
-#--------------------geometric transformation---------------------------
+#--------------------function---------------------------
     def filter(self,val):
         '''
         Put nan value in orientation file
@@ -54,4 +59,98 @@ class aita(object):
         
         new=np.array(self._obj.orientation)
         new[idx,idy,:]=np.nan
-        self._obj.orientation[:,:,:]=new           
+        self._obj.orientation[:,:,:]=new
+        
+        
+    def crop(self,lim,rebuild_gId=True):
+        '''
+        :param rebuild_gId: recompute the grainID
+        :type rebuild_gId: bool
+        :param lim:
+        :type lim: np.array
+        '''
+        ds=self._obj.where((self._obj.x>np.min(lim[0])) * (self._obj.x<np.max(lim[0])) *(self._obj.y>np.min(lim[1]))*(self._obj.y<np.max(lim[1])),drop=True)
+        
+        if rebuild_gId:
+            ds.grainId.data=morphology.label(ds.micro, connectivity=1, background=1)
+        
+        return ds
+#---------------interactive function-------------------
+    def interactive_crop(self,rebuild_gId=True):
+        '''
+        out=data.aita.interactive_crop()
+        
+        :param rebuild_gId: recompute the grainID
+        :type rebuild_gId: bool
+
+        This function can be use to crop within a jupyter notebook
+        It will crop the data and export the value of the crop in out.pos
+        '''
+        
+        def onselect(eclick, erelease):
+            "eclick and erelease are matplotlib events at press and release."
+            print('startposition: (%f, %f)' % (eclick.xdata, eclick.ydata))
+            print('endposition  : (%f, %f)' % (erelease.xdata, erelease.ydata))
+            print('used button  : ', eclick.button)
+
+        def toggle_selector(event):
+            print('Key pressed.')
+            if event.key in ['Q', 'q'] and toggle_selector.RS.active:
+                print('RectangleSelector deactivated.')
+                toggle_selector.RS.set_active(False)
+            if event.key in ['A', 'a'] and not toggle_selector.RS.active:
+                print('RectangleSelector activated.')
+                toggle_selector.RS.set_active(True)
+
+        print('1. click and drag the mouse on the figure to selecte the area')
+        print('2. you can draw the rectangle using the button "Draw area"')
+        print('3. if you are unhappy with the selection restart to 1.')
+        print('4. if you are happy with the selection click on "Export crop" (only the last rectangle is taken into account)')
+
+        
+        fig,ax=plt.subplots()
+        ml=np.max(np.array([len(self._obj.x),len(self._obj.y)]))
+        fig.set_figheight(len(self._obj.y)/ml*15)
+        fig.set_figwidth(len(self._obj.x)/ml*15)
+        tmp=self._obj.copy()
+        tmp['colormap']=self._obj.orientation.uvecs.calc_colormap()
+        tmp.colormap.plot.imshow()
+        toggle_selector.RS = matplotlib.widgets.RectangleSelector(ax, onselect, drawtype='box')
+        fig.canvas.mpl_connect('key_press_event', toggle_selector)
+
+
+        buttonCrop = widgets.Button(description='Export crop')
+        buttonDraw = widgets.Button(description='Draw area')
+        
+        def draw_area(_):
+            x=list(toggle_selector.RS.corners[0])
+            x.append(x[0])
+            y=list(toggle_selector.RS.corners[1])
+            y.append(y[0])
+            plt.plot(x,y,'-k')
+
+        def get_data(_):
+            x=list(toggle_selector.RS.corners[0])
+            x.append(x[0])
+            y=list(toggle_selector.RS.corners[1])
+            y.append(y[0])
+            plt.plot(x,y,'-b')
+            
+            # what happens when we press the button
+            out=self.crop(lim=toggle_selector.RS.corners,rebuild_gId=rebuild_gId)
+            
+            get_data.ds=out
+            get_data.crop=toggle_selector.RS.corners
+                
+            return get_data
+            
+            
+
+
+        # linking button and function together using a button's method
+        buttonDraw.on_click(draw_area)
+        buttonCrop.on_click(get_data)
+        # displaying button and its output together
+        display(buttonDraw,buttonCrop)
+
+        return get_data
