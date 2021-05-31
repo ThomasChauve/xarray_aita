@@ -154,3 +154,70 @@ class aita(object):
         display(buttonDraw,buttonCrop)
 
         return get_data
+
+    def interactive_misorientation_profile(self,res=0,degre=True):
+        '''
+        Interactive misorientation profile for jupyter notebook
+        
+        :param res: step size of the profil
+        :type res: float
+        :param degre: return mis2o and mis2p in degre overwise in radian (default: true)
+        :type degre: bool
+        '''
+        fig,ax=plt.subplots()
+        ml=np.max(np.array([len(self._obj.x),len(self._obj.y)]))
+        fig.set_figheight(len(self._obj.y)/ml*15)
+        fig.set_figwidth(len(self._obj.x)/ml*15)
+        tmp=self._obj.copy()
+        tmp['colormap']=tmp.orientation.uvecs.calc_colormap()
+        tmp.colormap.plot.imshow()
+        ax.axis('equal')
+
+        pos = []
+        def onclick(event):
+            pos.append([event.xdata,event.ydata])
+            if len(pos)==1:
+                plt.plot(pos[0][0],pos[0][1],'sk')
+            else:
+                pos_mis=np.array(pos[-2::])
+                plt.plot(pos[-2][0],pos[-2][1],'sk')
+                plt.plot(pos[-1][0],pos[-1][1],'ok')
+                plt.plot(pos_mis[:,0],pos_mis[:,1],'-k')
+
+
+        fig.canvas.mpl_connect('button_press_event', onclick)
+
+        buttonShow = widgets.Button(description='Show line')
+        buttonExtract = widgets.Button(description='Extract profile')
+
+
+        def extract_data(_):
+            pos_mis=np.array(pos[-2::])
+            ll=((pos_mis[1,1]-pos_mis[1,0])**2+(pos_mis[0,1]-pos_mis[0,0])**2)**0.5
+            if res==0:
+                rr=np.array(np.abs(self._obj.x[1]-self._obj.x[0]))
+            else:
+                rr=res
+            nb=int(ll/rr)
+            
+            xx=np.linspace(pos_mis[0,0],pos_mis[1,0],nb)
+            yy=np.linspace(pos_mis[0,1],pos_mis[1,1],nb)
+            ds,vxyz=self._obj.orientation.uvecs.misorientation_profile(xx,yy,degre=degre)
+            ds.attrs["start"]=pos_mis[0,:]
+            ds.attrs["end"]=pos_mis[1,:]
+            ds.attrs["step_size"]=rr
+            ds.attrs["unit"]=self._obj.unit
+
+            extract_data.ds=ds
+            extract_data.vxyz=vxyz
+
+            return extract_data
+
+
+        # linking button and function together using a button's method
+        buttonExtract.on_click(extract_data)
+
+        # displaying button and its output together
+        display(buttonExtract)
+
+        return extract_data

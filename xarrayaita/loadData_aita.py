@@ -38,7 +38,6 @@ def aita5col(adr_data,micro_adress=0):
     dy=np.max(dy)-dy
     #-------------------- The data structure--------------------------
     ds = xr.Dataset(
-    #"dims": {'x':resolution,'y':resolution}
     {   
         "orientation": (["y", "x","uvecs"],(np.dstack( (np.array(data.azi*np.pi/180).reshape([ny,nx]),np.array(data.col*np.pi/180).reshape([ny,nx])) ))),
         "quality": (["y", "x"],np.array(data.qua).reshape([ny,nx])),
