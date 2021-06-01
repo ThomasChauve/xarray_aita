@@ -6,6 +6,12 @@ import matplotlib.pyplot as plt
 from skimage import morphology
 import ipywidgets as widgets
 
+from IPython import get_ipython
+if get_ipython().__class__.__name__=='ZMQInteractiveShell':
+    from tqdm.notebook import tqdm
+else:
+    from tqdm import tqdm
+
 @xr.register_dataset_accessor("aita")
 
 class aita(object):
@@ -75,6 +81,51 @@ class aita(object):
             ds.grainId.data=morphology.label(ds.micro, connectivity=1, background=1)
         
         return ds
+    
+#--------------------------------------------------------------------------------------------    
+    def mean_grain(self,dilate=True):
+        '''
+        Compute the mean orientation inside the grain
+        :param dilate: remove grain boundaries by dilatation (default True)
+        :type dilate: bool
+        '''
+        allv=[]
+        # number of grain
+        nb_grain=int(np.nanmax(self._obj.grainId))
+        res=np.array(self._obj.orientation)
+        res[:,:,:]=np.nan
+        # loop on all the grain
+        for i in tqdm(range(nb_grain+1)):
+            sg=self._obj.where(self._obj.grainId==i,drop=True)
+            if np.sum(~np.isnan(np.array(sg.orientation)))!=0:
+                eval,evec=sg.orientation.uvecs.OT2nd()
+                mori=evec[:,0]
+                if mori[2]<0:
+                    mori=-mori
+
+                col=np.arccos(mori[2])
+                azi=np.arctan2(mori[1],mori[0])
+            else:
+                col=np.nan
+                azi=np.nan
+            
+            mm=np.array(self._obj.grainId)==i
+            if dilate:
+                mm=morphology.binary_dilation(mm)
+                
+                
+            id1,id2=np.where(mm==True)
+            res[id1,id2,0]=azi
+            res[id1,id2,1]=col
+            
+        res=xr.DataArray(res,dims=['y','x','uvecs'])
+        return res
+            
+        
+            
+            
+            
+            
 #---------------interactive function-------------------
     def interactive_crop(self,rebuild_gId=True):
         '''
@@ -202,14 +253,14 @@ class aita(object):
             
             xx=np.linspace(pos_mis[0,0],pos_mis[1,0],nb)
             yy=np.linspace(pos_mis[0,1],pos_mis[1,1],nb)
-            ds,vxyz=self._obj.orientation.uvecs.misorientation_profile(xx,yy,degre=degre)
+            ds=self._obj.orientation.uvecs.misorientation_profile(xx,yy,degre=degre)
             ds.attrs["start"]=pos_mis[0,:]
             ds.attrs["end"]=pos_mis[1,:]
             ds.attrs["step_size"]=rr
             ds.attrs["unit"]=self._obj.unit
 
             extract_data.ds=ds
-            extract_data.vxyz=vxyz
+            
 
             return extract_data
 
