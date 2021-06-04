@@ -47,7 +47,7 @@ class aita(object):
         '''
         flip left right the data and rotate the orientation 
         '''
-        self._obj.coords['x']=np.max(self._obj.coords['x'])-self._obj.coords['x']
+        self._obj.coords[self._obj.orientation.coords.dims[1]]=self._obj.coords[self._obj.orientation.coords.dims[1]].max()-self._obj.coords[self._obj.orientation.coords.dims[1]]
         self._obj.orientation[:,:,0]=np.mod(2*np.pi-self._obj.orientation[:,:,0],2*np.pi)
 
         
@@ -55,9 +55,18 @@ class aita(object):
         '''
         rotate 180 degre the data and rotate the orientation 
         '''
-        self._obj.coords['x']=np.max(self._obj.coords['x'])-self._obj.coords['x']
-        self._obj.coords['y']=np.max(self._obj.coords['y'])-self._obj.coords['y']
+        self._obj.coords[self._obj.orientation.coords.dims[1]]=np.max(self._obj.coords[self._obj.orientation.coords.dims[1]])-self._obj.coords[self._obj.orientation.coords.dims[1]]
+        self._obj.coords[self._obj.orientation.coords.dims[0]]=np.max(self._obj.coords[self._obj.orientation.coords.dims[0]])-self._obj.coords[self._obj.orientation.coords.dims[0]]
         self._obj.orientation[:,:,0]=np.mod(np.pi+self._obj.orientation[:,:,0],2*np.pi)
+        
+    def rot90c(self):
+        '''
+        rotate 90 degre in clockwise direction 
+        '''
+        self._obj.orientation[:,:,0]=np.mod(np.pi/2-self._obj.orientation[:,:,0],2*np.pi)
+        data=self._obj.transpose(self._obj.orientation.coords.dims[1],self._obj.orientation.coords.dims[0],...)
+        data.coords[data.orientation.coords.dims[0]]=data.coords[data.orientation.coords.dims[0]].max()-data.coords[data.orientation.coords.dims[0]]
+        return data
         
         
 #--------------------function---------------------------
@@ -189,7 +198,7 @@ class aita(object):
             res[id1,id2,0]=azi
             res[id1,id2,1]=col
             
-        res=xr.DataArray(res,dims=['y','x','uvecs'])
+        res=xr.DataArray(res,dims=[self._obj.orientation.coords.dims[0],self._obj.orientation.coords.dims[1],'uvecs'])
         return res
             
         
@@ -540,8 +549,8 @@ class aita(object):
         def export_micro(_):
             TrueMicro=calcGB(val_scharr.get_interact_value(),use_scharr.get_interact_value(),val_canny.get_interact_value(),use_canny.get_interact_value(),val_qua.get_interact_value(),use_qua.get_interact_value(),dilate.get_interact_value(),CM.get_interact_value(),CW.get_interact_value(),inc_border.get_interact_value())
             # create microstructure
-            ds['micro']=xr.DataArray(TrueMicro,dims=['y','x'])
-            ds['grainId']=xr.DataArray(skimage.morphology.label(TrueMicro, connectivity=1, background=1),dims=['y','x'])
+            ds['micro']=xr.DataArray(TrueMicro,dims=[self._obj.orientation.coords.dims[0],self._obj.orientation.coords.dims[1]])
+            ds['grainId']=xr.DataArray(skimage.morphology.label(TrueMicro, connectivity=1, background=1),dims=[self._obj.orientation.coords.dims[0],self._obj.orientation.coords.dims[1]])
             
             export_micro.ds=ds
             
