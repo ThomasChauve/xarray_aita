@@ -182,7 +182,7 @@ class aita(object):
             
             mm=np.array(self._obj.grainId)==i
             if dilate:
-                mm=morphology.binary_dilation(mm)
+                mm=skimage.morphology.binary_dilation(mm)
                 
                 
             id1,id2=np.where(mm==True)
