@@ -45,27 +45,105 @@ class aita(object):
 #--------------------geometric transformation---------------------------
     def fliplr(self):
         '''
-        flip left right the data and rotate the orientation 
+        flip left right the data and rotate the orientation
+        
+        May be it is more a routation around the 0y axis of 180 degree
         '''
-        self._obj.coords[self._obj.orientation.coords.dims[1]]=self._obj.coords[self._obj.orientation.coords.dims[1]].max()-self._obj.coords[self._obj.orientation.coords.dims[1]]
-        self._obj.orientation[:,:,0]=np.mod(2*np.pi-self._obj.orientation[:,:,0],2*np.pi)
+        ori = np.array(self._obj.orientation)
+        ori[:,:,0]=np.mod(2*np.pi-ori[:,:,0],2*np.pi)
+        ori=np.fliplr(ori)
+        
+        qua=np.fliplr(self._obj.quality)
+        mi=np.fliplr(self._obj.micro)
+        
+        ds = xr.Dataset(
+        {   
+            "orientation": (["y", "x","v"],ori),
+            "quality": (["y", "x"],qua),
+            "micro": (["y", "x"],mi),
+            "grainId": (["y", "x"], skimage.morphology.label(mi, connectivity=1, background=1)),
+        
+        },
+        coords={
+            "x": np.array(self._obj.x),
+            "y": np.array(self._obj.y),
+        },
+        )
+            
+        ds.attrs["date"]=self._obj.attrs['date']
+        ds.attrs["unit"]=self._obj.attrs['unit']
+        ds.attrs["step_size"]=self._obj.attrs['step_size']
+        ds.attrs["path_dat"]=self._obj.attrs['path_dat']
+            
+        return ds
 
         
     def rot180(self):
         '''
-        rotate 180 degre the data and rotate the orientation 
+        rotate 180 degre around Oz the data and rotate the orientation 
         '''
-        self._obj.coords[self._obj.orientation.coords.dims[1]]=np.max(self._obj.coords[self._obj.orientation.coords.dims[1]])-self._obj.coords[self._obj.orientation.coords.dims[1]]
-        self._obj.coords[self._obj.orientation.coords.dims[0]]=np.max(self._obj.coords[self._obj.orientation.coords.dims[0]])-self._obj.coords[self._obj.orientation.coords.dims[0]]
-        self._obj.orientation[:,:,0]=np.mod(np.pi+self._obj.orientation[:,:,0],2*np.pi)
+
+        ori = np.array(self._obj.orientation)
+        ori[:,:,0]=np.mod(np.pi+ori[:,:,0],2*np.pi)
+        ori=np.flipud(np.fliplr(ori))
+        
+        qua=np.flipud(np.fliplr(self._obj.quality))
+        mi=np.flipud(np.fliplr(self._obj.micro))
+        
+        ds = xr.Dataset(
+        {   
+            "orientation": (["y", "x","v"],ori),
+            "quality": (["y", "x"],qua),
+            "micro": (["y", "x"],mi),
+            "grainId": (["y", "x"], skimage.morphology.label(mi, connectivity=1, background=1)),
+        
+        },
+        coords={
+            "x": np.array(self._obj.x),
+            "y": np.array(self._obj.y),
+        },
+        )
+            
+        ds.attrs["date"]=self._obj.attrs['date']
+        ds.attrs["unit"]=self._obj.attrs['unit']
+        ds.attrs["step_size"]=self._obj.attrs['step_size']
+        ds.attrs["path_dat"]=self._obj.attrs['path_dat']
+            
+        return ds
         
     def rot90c(self):
         '''
         rotate 90 degre in clockwise direction 
-        '''
-        self._obj.orientation[:,:,0]=np.mod(np.pi/2-self._obj.orientation[:,:,0],2*np.pi)
-        data=self._obj.transpose(self._obj.orientation.coords.dims[1],self._obj.orientation.coords.dims[0],...)
-        data.coords[data.orientation.coords.dims[0]]=data.coords[data.orientation.coords.dims[0]].max()-data.coords[data.orientation.coords.dims[0]]
+        '''       
+        ori = np.array(self._obj.orientation)
+        ori[:,:,0]=np.mod(-np.pi/2+ori[:,:,0],2*np.pi)
+        ori=np.fliplr(np.transpose(ori,[1,0,2]))
+        
+        qua=np.fliplr(np.transpose(np.array(self._obj.quality)))
+        mi=np.fliplr(np.transpose(np.array(self._obj.micro)))
+        
+        ds = xr.Dataset(
+        {   
+            "orientation": (["y", "x","v"],ori),
+            "quality": (["y", "x"],qua),
+            "micro": (["y", "x"],mi),
+            "grainId": (["y", "x"], skimage.morphology.label(mi, connectivity=1, background=1)),
+        
+        },
+        coords={
+            "x": np.max(np.array(self._obj.y))-np.array(self._obj.y),
+            "y": np.max(np.array(self._obj.x))-np.array(self._obj.x),
+        },
+        )
+            
+        ds.attrs["date"]=self._obj.attrs['date']
+        ds.attrs["unit"]=self._obj.attrs['unit']
+        ds.attrs["step_size"]=self._obj.attrs['step_size']
+        ds.attrs["path_dat"]=self._obj.attrs['path_dat']
+            
+        return ds
+        
+        
         return data
         
         
@@ -91,7 +169,7 @@ class aita(object):
         ds=self._obj.where((self._obj.x>np.min(lim[0])) * (self._obj.x<np.max(lim[0])) *(self._obj.y>np.min(lim[1]))*(self._obj.y<np.max(lim[1])),drop=True)
         
         if rebuild_gId:
-            ds.grainId.data=morphology.label(ds.micro, connectivity=1, background=1)
+            ds.grainId.data=skimage.morphology.label(ds.micro, connectivity=1, background=1)
         
         return ds
 #--------------------------------------------------------------------------------------------    
@@ -265,14 +343,12 @@ class aita(object):
             x.append(x[0])
             y=list(toggle_selector.RS.corners[1])
             y.append(y[0])
-            plt.plot(x,y,'-b')
-            
             # what happens when we press the button
             out=self.crop(lim=toggle_selector.RS.corners,rebuild_gId=rebuild_gId)
-            
+            plt.plot(x,y,'-b')
             get_data.ds=out
             get_data.crop=toggle_selector.RS.corners
-                
+            
             return get_data
             
             
