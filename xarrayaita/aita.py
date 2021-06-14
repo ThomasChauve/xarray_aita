@@ -38,7 +38,7 @@ class aita(object):
         2. grainId : DataArray of dim (m,n,1)
         
         :param xarray_obj:
-        :type xarray_obj: xr.DataArray
+        :type xarray_obj: xr.Dataset
         '''
         self._obj = xarray_obj 
     pass
