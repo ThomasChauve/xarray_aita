@@ -22,7 +22,7 @@ VERSION = '0.1'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'xarray','numpy','matplotlib','scikit-image','scipy','ipywidgets','datetime',
+    'xarray','numpy','matplotlib','scikit-image','scipy','ipywidgets','datetime','tqdm','pandas'
     'xarrayuvecs @ git+https://github.com/ThomasChauve/xarray_uvecs.git@main#egg=xarrayuvecs'    
 ]
 
