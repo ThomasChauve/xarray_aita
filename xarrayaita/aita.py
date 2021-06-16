@@ -8,7 +8,6 @@ import ipywidgets as widgets
 import scipy
 import datetime
 import skimage
-import mahotas as mh
 
 from IPython import get_ipython
 if get_ipython().__class__.__name__=='ZMQInteractiveShell':

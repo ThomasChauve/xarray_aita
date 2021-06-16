@@ -22,8 +22,10 @@ VERSION = '0.1'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-#    'xarray','numpy','matplotlib','scikit-image'
+    'xarray','numpy','matplotlib','scikit-image','scipy','ipywidgets','datetime',
+    'xarrayuvecs @ git+https://github.com/ThomasChauve/xarray_uvecs.git@main#egg=xarrayuvecs'    
 ]
+
 
 # What packages are optional?
 EXTRAS = {
@@ -108,7 +110,7 @@ setup(
     # entry_points={
     #     'console_scripts': ['mycli=mymodule:cli'],
     # },
-    install_requires=REQUIRED,
+    install_requires = REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
     license='GPL-3.0',
