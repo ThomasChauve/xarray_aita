@@ -277,9 +277,76 @@ class aita(object):
             
         res=xr.DataArray(res,dims=[self._obj.orientation.coords.dims[0],self._obj.orientation.coords.dims[1],'uvecs'])
         return res
-            
+
+#-------------------------------------------------------------------------------------------
+    def dist2GB(self):
+        '''
+        Compute the distance to the closest grain boundary
+        :retrun dist2gb:
+        :rtype dist2gb: xr.DataArray 
+        '''
+        dist2gb=scipy.ndimage.morphology.distance_transform_edt(np.abs(1-self._obj.micro))
+
+        return xr.DataArray(dist2gb,dims=self._obj.micro.coords.dims)
+    
+    def dist2TJ(self):
+        '''
+        Compute the distance to the closest grain boundary
+        :retrun dist2tj:
+        :rtype dist2tj: xr.DataArray 
+        '''
+        mconv=np.ones([3,3])
+        mconv[1,1]=2
+        tj=(scipy.signal.convolve2d(self._obj.micro,mconv,mode='same')>4)
+        dist2tj=scipy.ndimage.morphology.distance_transform_edt(np.abs(1-tj))
+
+        return xr.DataArray(dist2tj,dims=self._obj.micro.coords.dims)
+    
+    def closest_outG_value(self,xada):
+        '''
+        Compute for each pixel the abs(val_pixel-val_pixel_closest_grain) 
+        '''
+
+        res=np.array(xada.copy())
+
+        cval=0
+        if cval in xada:
+            while cval in xda:
+                cval=cval-1
+                print(cval)
+
+        for i in tqdm(np.unique(self._obj.grainId)):
+            a=xada.where(self._obj.grainId!=i)
+            b=np.array(a)
+            ba=np.array(a)
+            b[np.isnan(b)]=cval
+            ba[np.isnan(ba)]=cval
+
+            footprint=np.ones((3,3))
+
+            while np.sum(b==cval)!=0:
+                if len(xada.shape)==2:
+                    c=scipy.ndimage.morphology.grey_dilation(b,footprint=footprint,cval=cval)
+                    id=np.where(ba==cval)
+                    ba[id]=c[id]
+                    b=ba.copy()
+                elif len(xada.shape)==3:
+                    for j in range(xada.shape[2]):
+                        c=scipy.ndimage.morphology.grey_dilation(b[:,:,j],footprint=footprint,cval=cval)
+                        id1,id2=np.where(ba[:,:,j]==cval)
+                        ba[id1,id2,j]=c[id1,id2]
+                    b=ba.copy()    
+
+            if len(xada.shape)==2:
+                id=np.where(self._obj.grainId==i)
+                res[id]=b[id]
+            elif len(xada.shape)==3:
+                id1,id2,=np.where(self._obj.grainId==i)
+                res[id1,id2,:]=b[id1,id2,:]
+
+        res=xr.DataArray(res,dims=xada.coords.dims)
         
-            
+        return res
             
             
             
