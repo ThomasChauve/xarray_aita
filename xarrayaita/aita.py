@@ -235,8 +235,39 @@ class aita(object):
                 phase_out.write(str(i) + '          0              ' + str(phi1) + ' ' + str(phi) + ' ' + str(phi2) + '\n');  
         phase_out.close()
         
+#--------------------------------------------------------------------------------------------    
+    def resize(self,res):
+        '''
+        Resize the dataset
+        '''
         
-        
+        zoom=self._obj.step_size/res
+        k=True
+        for name in self._obj.data_vars:
+            if len(self._obj.get(name).shape)==2:
+                tmp=scipy.ndimage.interpolation.zoom(self._obj.get(name),zoom,order=0,mode='nearest')
+                tmp=np.flipud(tmp)
+            elif len(self._obj.get(name).shape)==3:
+                tmp=[]
+                for i in range(self._obj.get(name).shape[-1]):
+                    tmp.append(scipy.ndimage.interpolation.zoom(self._obj.get(name)[:,:,i],zoom,order=0,mode='nearest'))
+                tmp=np.dstack(np.fliplr(tmp))
+            
+            if k:
+                nself=xr.Dataset()
+                nself.attrs=self._obj.attrs
+                nself.attrs['step_size']=res
+                ss=tmp.shape
+                idx=np.linspace(0,ss[1]-1,ss[1])*res
+                idy=np.linspace(0,ss[0]-1,ss[0])*res
+                nself.coords['x']=idx
+                nself.coords['y']=idy
+                k=False
+            
+            nself[name]=xr.DataArray(tmp,dims=self._obj.get(name).dims)
+            
+        return nself
+                
         
     
 #--------------------------------------------------------------------------------------------    
